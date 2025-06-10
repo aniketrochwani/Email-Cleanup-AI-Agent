@@ -1,0 +1,174 @@
+{
+  "name": "Delete unwanted emails",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message.content.is_useful }}",
+              "value2": "Not Useful"
+            }
+          ]
+        }
+      },
+      "id": "393538ef-17f9-4dcb-9ff0-c0de181c2c45",
+      "name": "IF - Not Useful",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        560,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "delete",
+        "messageId": "={{ $json.message.content.message_id }}"
+      },
+      "id": "bdd9d52b-964e-46ff-ae67-8eb1c304d61e",
+      "name": "Gmail - Delete Message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        840,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "c2ngw2rL56YsSzSj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        0
+      ],
+      "id": "c443774c-7869-4a6b-87db-c512b48ecbca",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "simple": false,
+        "filters": {
+          "labelIds": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -40,
+        0
+      ],
+      "id": "e3b4c405-9615-4f28-84d1-92a5f9a5ff33",
+      "name": "Gmail",
+      "webhookId": "e2d7f6ce-3075-4985-9701-aea7a81bd4d6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "c2ngw2rL56YsSzSj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an email assistant. Your job is to classify emails from my inbox as either \"Useful\" or \"Not Useful (can be deleted)\". Use the following rules to decide:\n\nMark as \"Not Useful\" (Delete) if the email:\n\nIs a promotion or marketing email (e.g., sales, discounts, newsletters).\n\nIs a notification from social media or e-commerce (e.g., “Your order has been shipped”, “New likes on your post”).\n\nContains only promotional or non-personal content.\n\nIs a transactional update from apps I no longer use.\n\nMark as \"Useful\" if the email:\n\nContains personal communication.\n\nIs from a company I'm currently working with (e.g., client, recruiter, manager).\n\nIncludes invoices, receipts, or important documents.\n\nIs related to my job, education, or ongoing projects.\n\nHas account recovery, password reset, or login alerts.\n\nHere is the email metadata:\n\nSubject: {{ $json.headers.subject }}\nFrom: {{ $json.headers.from }}\nDate: {{ $json.headers.date }}\nSnippet: {{ $json.text }}\nLabels: {{ $json.labelIds }}\nMessageId: {{ $json.id }}\n\nPlease provide the following output parameter:\n\n- is_useful\n- message_id\n\nHere result can only have either of the field \"Useful\" or \"Not Useful\""
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        180,
+        0
+      ],
+      "id": "7ffcd8f4-81ff-459d-abb2-2713b5a70842",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "eEqQJq5uvmn8xqqo",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF - Not Useful": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Delete Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "IF - Not Useful",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d01c0274-29ff-4145-81e6-07b60b40cc63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5716efe23aaa62a2d37417f2f650eb2ed43cffff75f488af6159defb63117ad1"
+  },
+  "id": "5IKjGJFP5Ur5iVhd",
+  "tags": []
+}
